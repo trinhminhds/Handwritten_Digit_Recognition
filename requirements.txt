@@ -1,0 +1,14 @@
+numpy
+pandas
+matplotlib
+seaborn
+flask
+flask-cors
+tensorflow
+scikit-learn
+opencv-python
+joblib
+imbalanced-learn
+pyscreenshot
+#csv
+#glob
