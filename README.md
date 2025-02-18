@@ -1,8 +1,7 @@
 
 # Handwritten Digit Recognition System
 
-![Static Badge](https://img.shields.io/badge/Python-3.8-grey?logo=python)
-![Static Badge](https://img.shields.io/badge/Numpy-grey?logo=numpy)
+![Static Badge](https://img.shields.io/badge/Python-3.11-grey?logo=python)
 ![Static Badge](https://img.shields.io/badge/SVM-grey?logo=svm)
 ![Static Badge](https://img.shields.io/badge/MNIST-grey?logo=mnist)
 
