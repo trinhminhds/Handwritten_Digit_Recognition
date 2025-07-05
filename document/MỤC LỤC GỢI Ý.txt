@@ -1,0 +1,63 @@
+📑 MỤC LỤC GỢI Ý
+LỜI CẢM ƠN
+LỜI MỞ ĐẦU
+DANH MỤC BẢNG
+DANH MỤC HÌNH ẢNH
+DANH MỤC TỪ VIẾT TẮT
+
+CHƯƠNG 1: TỔNG QUAN VỀ ĐỀ TÀI
+1.1. Giới thiệu bài toán nhận dạng chữ số viết tay
+1.2. Vai trò và ứng dụng của nhận dạng chữ số trong thực tế
+1.3. Tổng quan về học máy (Machine Learning)
+1.4. Giới thiệu bộ dữ liệu MNIST
+1.5. Mục tiêu và phạm vi đề tài
+1.6. Cấu trúc báo cáo
+
+CHƯƠNG 2: CƠ SỞ LÝ THUYẾT VÀ CÔNG NGHỆ SỬ DỤNG
+2.1. Các kỹ thuật trong học máy áp dụng cho nhận dạng ảnh
+  2.1.1. Phân loại (Classification)
+  2.1.2. Support Vector Machine (SVM)
+  2.1.3. Các thuật toán khác (so sánh nếu có)
+2.2. Tiền xử lý dữ liệu ảnh
+  2.2.1. Chuẩn hóa dữ liệu
+  2.2.2. Giảm chiều dữ liệu (PCA nếu có)
+2.3. Các công cụ và thư viện sử dụng
+  2.3.1. Python
+  2.3.2. NumPy, Pandas, Matplotlib
+  2.3.3. Scikit-learn hoặc mô hình SVM tự xây dựng
+2.4. Đánh giá mô hình học máy
+
+CHƯƠNG 3: XÂY DỰNG HỆ THỐNG NHẬN DẠNG CHỮ SỐ
+3.1. Kiến trúc tổng thể của hệ thống
+3.2. Tiền xử lý dữ liệu
+3.3. Trực quan hóa dữ liệu MNIST
+3.4. Xây dựng mô hình SVM
+  3.4.1. Hàm mất mát (Loss Function)
+  3.4.2. Siêu phẳng phân chia (Hyperplane)
+  3.4.3. Regularization
+  3.4.4. Tối ưu hóa bằng Gradient Descent
+3.5. Huấn luyện và kiểm thử mô hình
+3.6. Đánh giá hiệu quả mô hình (độ chính xác, ma trận nhầm lẫn)
+3.7. So sánh với các mô hình khác (nếu có)
+
+CHƯƠNG 4: TRIỂN KHAI VÀ ỨNG DỤNG
+4.1. Xây dựng giao diện người dùng (nếu có: vẽ số trên canvas, upload ảnh...)
+4.2. Kết nối front-end với mô hình nhận dạng
+4.3. Kết quả và phản hồi từ người dùng thử
+4.4. Khả năng mở rộng hệ thống (thêm phép toán, đa dạng dữ liệu, nhúng vào thiết bị...)
+
+CHƯƠNG 5: KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN
+5.1. Kết luận chung về quá trình thực hiện
+5.2. Đánh giá kết quả đạt được
+5.3. Hạn chế của đề tài
+5.4. Hướng phát triển trong tương lai
+
+TÀI LIỆU THAM KHẢO
+Theo chuẩn IEEE hoặc APA
+
+(PHỤ LỤC – nếu có)
+Mã nguồn quan trọng
+
+Kết quả chi tiết các lần huấn luyện
+
+Giao diện triển khai mẫu

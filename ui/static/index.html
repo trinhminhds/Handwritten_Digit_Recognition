@@ -13,11 +13,22 @@
             margin: 10px;
         }
 
-        /* Flexbox container for layout */
+        /* Optional dashed 28×28 overlay indicator */
+        #canvas::after, #canvas2::after, #operationCanvas::after {
+            content: '';
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            border: 1px dashed gray;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
         .flex-container {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
             margin-top: 20px;
         }
 
@@ -41,222 +52,210 @@
 <h2>Digit Recognition & Calculator</h2>
 
 <div class="flex-container">
-    <!-- First Digit (left) -->
-    <div class="flex-item">
-        <div class="container">
-            <h3>First Digit</h3>
-            <canvas id="canvas" width="280" height="280"></canvas>
-            <br/>
-            <button onclick="clearCanvas('canvas')">Clear Canvas</button>
-            <button onclick="sendCanvas('canvas', 1)">Predict from Drawing</button>
-            <br/>
-            <h4>Or Upload First Image</h4>
-            <input type="file" id="imageUpload" accept="image/*" onchange="sendImage('upload_image', 1)"/>
-            <p>Prediction: <span id="digit1Prediction">N/A</span></p>
-            <p>Prediction Time: <span id="digit1PredictionTime">N/A</span></p>
-        </div>
+    <!--------------------------------- First Digit ----------------------------------------->
+    <div class="flex-item container">
+        <h3>First Digit</h3>
+        <canvas id="canvas" width="280" height="280"></canvas>
+        <br/>
+        <button onclick="clearCanvasUpload('canvas')">Clear</button>
+        <br/>
+        <br/>
+        <input type="file" id="imageUpload" accept="image/*"/><br/>
+        <br/>
+        <button onclick="predictDigit(1)">Predict</button>
+        <p>Prediction: <span id="digit1Prediction">N/A</span></p>
+        <p>Time: <span id="digit1PredictionTime">N/A</span></p>
     </div>
 
-    <!-- Operation (middle) -->
-    <div class="flex-item" id="operationContainer">
+    <!---------------------------------- Operation ------------------------------------------->
+    <div class="flex-item container" id="operationContainer">
         <h3>Operation</h3>
         <canvas id="operationCanvas" width="280" height="280"></canvas>
         <br/>
-        <button onclick="clearCanvas('operationCanvas')">Clear Canvas</button>
-        <button onclick="sendCanvas('operationCanvas', 'operation')">Predict Operation</button>
-        <p>Operation Prediction: <span id="operationPrediction">N/A</span></p>
+        <button onclick="clearCanvasUpload('operationCanvas')">Clear</button>
+        <br/>
+        <input type="file" id="imageUploadOpe" accept="image/*"/><br/>
+        <button onclick="predictAndCalculate()">Predict & Calculate</button>
+        <p>Operation Code: <span id="operationPrediction">N/A</span></p>
     </div>
 
-    <!-- Second Digit (right) -->
-    <div class="flex-item">
-        <div class="container">
-            <h3>Second Digit</h3>
-            <canvas id="canvas2" width="280" height="280"></canvas>
-            <br/>
-            <button onclick="clearCanvas('canvas2')">Clear Canvas</button>
-            <button onclick="sendCanvas('canvas2', 2)">Predict from Drawing</button>
-            <br/>
-            <h4>Or Upload Second Image</h4>
-            <input type="file" id="imageUpload2" accept="image/*" onchange="sendImage('upload_image2', 2)"/>
-            <p>Prediction: <span id="digit2Prediction">N/A</span></p>
-            <p>Prediction Time: <span id="digit2PredictionTime">N/A</span></p>
-        </div>
+    <!-------------------------------- Second Digit ------------------------------------------>
+    <div class="flex-item container">
+        <h3>Second Digit</h3>
+        <canvas id="canvas2" width="280" height="280"></canvas>
+        <br/>
+        <button onclick="clearCanvasUpload('canvas2')">Clear</button>
+        <br/>
+        <br/>
+        <input type="file" id="imageUpload2" accept="image/*"/><br/>
+        <br/>
+        <button onclick="predictDigit(2)">Predict</button>
+        <p>Prediction: <span id="digit2Prediction">N/A</span></p>
+        <p>Time: <span id="digit2PredictionTime">N/A</span></p>
     </div>
 </div>
 
 <div class="flex-container">
     <div class="flex-item">
-        <button onclick="calculate()">Calculate</button>
-        <h4>Calculation Result: <span id="calcResult">Result will appear here...</span></h4>
+        <h2>Result: <span id="calcResult">...</span></h2>
     </div>
 </div>
 
+<!------------------------------------- Script --------------------------------------------->
 <script>
-    const canvases = [document.getElementById("canvas"), document.getElementById("canvas2"), document.getElementById("operationCanvas")];
-    const contexts = canvases.map(canvas => canvas.getContext("2d"));
-    let drawings = [false, false, false];
+    const canvases = [
+        document.getElementById('canvas'),
+        document.getElementById('canvas2'),
+        document.getElementById('operationCanvas')
+    ];
+    const contexts = canvases.map(c => c.getContext('2d'));
+    let drawing = [false, false, false];
 
-    // Set background color for all canvases to white
-    canvases.forEach((canvas, index) => {
-        contexts[index].fillStyle = "black";
-        contexts[index].fillRect(0, 0, canvas.width, canvas.height);
+    // Initialize white background
+    canvases.forEach((c, i) => {
+        contexts[i].fillStyle = 'white';
+        contexts[i].fillRect(0, 0, c.width, c.height);
     });
 
-    // Helper to begin drawing on canvas
-    function startDrawing(event, canvasIndex) {
-        drawings[canvasIndex] = true;
-        contexts[canvasIndex].beginPath();
-        contexts[canvasIndex].moveTo(event.offsetX, event.offsetY);
+    function startDrawing(e, i) {
+        drawing[i] = true;
+        contexts[i].beginPath();
+        contexts[i].moveTo(e.offsetX, e.offsetY);
     }
 
-    // Helper to stop drawing on canvas
-    function stopDrawing(canvasIndex) {
-        drawings[canvasIndex] = false;
-        contexts[canvasIndex].closePath();
+    function stopDrawing(i) {
+        drawing[i] = false;
+        contexts[i].closePath();
     }
 
-    // Helper to handle drawing on canvas
-    function draw(event, canvasIndex) {
-        if (!drawings[canvasIndex]) return;
-        contexts[canvasIndex].strokeStyle = "white";
-        contexts[canvasIndex].lineWidth = 14;
-        contexts[canvasIndex].lineTo(event.offsetX, event.offsetY);
-        contexts[canvasIndex].stroke();
-        contexts[canvasIndex].beginPath();
-        contexts[canvasIndex].moveTo(event.offsetX, event.offsetY);
+    function draw(e, i) {
+        if (!drawing[i]) return;
+        contexts[i].strokeStyle = 'black';
+        contexts[i].lineWidth = 14;
+        contexts[i].lineTo(e.offsetX, e.offsetY);
+        contexts[i].stroke();
+        contexts[i].beginPath();
+        contexts[i].moveTo(e.offsetX, e.offsetY);
     }
 
-    canvases.forEach((canvas, index) => {
-        canvas.addEventListener("mousedown", (event) => startDrawing(event, index));
-        canvas.addEventListener("mouseup", () => stopDrawing(index));
-        canvas.addEventListener("mouseout", () => stopDrawing(index)); // Stop drawing when the mouse leaves the canvas
-        canvas.addEventListener("mousemove", (event) => draw(event, index));
+    canvases.forEach((c, i) => {
+        c.addEventListener('mousedown', e => startDrawing(e, i));
+        c.addEventListener('mouseup', () => stopDrawing(i));
+        c.addEventListener('mouseout', () => stopDrawing(i));
+        c.addEventListener('mousemove', e => draw(e, i));
     });
 
-    function clearCanvas(canvasId) {
-        const index = canvasId === "canvas" ? 0 : canvasId === "canvas2" ? 1 : 2;
-        contexts[index].clearRect(0, 0, canvases[index].width, canvases[index].height);
-        contexts[index].fillStyle = "black";
-        contexts[index].fillRect(0, 0, canvases[index].width, canvases[index].height); // Reset to black background
-        if (index === 0) {
-            document.getElementById("digit1Prediction").textContent = "N/A";
-            document.getElementById("digit1PredictionTime").textContent = 'N/A';
-        } else if (index === 1) {
-            document.getElementById("digit2Prediction").textContent = "N/A";
-            document.getElementById("digit2PredictionTime").textContent = 'N/A';
-        } else if (index === 2) {
-            document.getElementById("operationPrediction").textContent = "N/A";
+    // clear canvas and upload image
+    function clearCanvasUpload(id) {
+        let idx = id === 'canvas' ? 0 : id === 'canvas2' ? 1 : 2;
+        const context = contexts[idx];
+        const canvas = canvases[idx];
+        const fileInput = document.getElementById(idx === 0 ? 'imageUpload' : idx === 1 ? 'imageUpload2' : 'imageUploadOpe');
+
+        // clear canvas
+        contexts[idx].clearRect(0, 0, canvases[idx].width, canvases[idx].height);
+        contexts[idx].fillStyle = 'white';
+        contexts[idx].fillRect(0, 0, canvases[idx].width, canvases[idx].height);
+
+        // Reset predictions and result
+        document.getElementById(idx === 0 ? 'digit1Prediction' : idx === 1 ? 'digit2Prediction' : 'operationPrediction').textContent = 'N/A';
+        if (idx < 2) document.getElementById(idx === 0 ? 'digit1PredictionTime' : 'digit2PredictionTime').textContent = 'N/A';
+        if (idx === 2) document.getElementById('calcResult').textContent = '...';
+
+        // Clear file input (reset file upload)
+        if (fileInput) {
+            fileInput.value = '';
         }
     }
 
-    function sendCanvas(canvasId, digitIndex) {
-        const index = canvasId === "canvas" ? 0 : canvasId === "canvas2" ? 1 : 2;
-        const canvas = canvases[index];
-        const dataURL = canvas.toDataURL();
-        fetch("/predict_canvas", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({image: dataURL}),
-        })
-            .then((response) => response.json())
-            .then((data) => {
-                if (data.prediction !== undefined) {
-                    if (digitIndex === 1) {
-                        document.getElementById("digit1Prediction").textContent = data.prediction;
-                        document.getElementById("digit1PredictionTime").textContent = `${data.prediction_time.toFixed(2)} seconds`;
-                    } else if (digitIndex === 2) {
-                        document.getElementById("digit2Prediction").textContent = data.prediction;
-                        document.getElementById("digit2PredictionTime").textContent = `${data.prediction_time.toFixed(2)} seconds`;
-                    } else if (digitIndex === "operation") {
-                        document.getElementById("operationPrediction").textContent = data.prediction;
-                    }
-                } else {
-                    if (digitIndex === 1) {
-                        document.getElementById("digit1Prediction").textContent = "Error";
-                        document.getElementById("digit1PredictionTime").textContent = "N/A";
-                    } else if (digitIndex === 2) {
-                        document.getElementById("digit2Prediction").textContent = "Error";
-                        document.getElementById("digit2PredictionTime").textContent = "N/A";
-                    } else if (digitIndex === "operation") {
-                        document.getElementById("operationPrediction").textContent = "Error";
-                    }
-                }
-            })
-            .catch((error) => {
-                if (digitIndex === 1) {
-                    document.getElementById("digit1Prediction").textContent = "Error in prediction.";
-                    document.getElementById("digit1PredictionTime").textContent = "N/A";
-                } else if (digitIndex === 2) {
-                    document.getElementById("digit2Prediction").textContent = "Error in prediction.";
-                    document.getElementById("digit2PredictionTime").textContent = "N/A";
-                } else if (digitIndex === "operation") {
-                    document.getElementById("operationPrediction").textContent = "Error in prediction.";
-                }
-                console.error(error);
-            });
+    // Predict canvas and upload image Digit 1 and 2
+    function predictDigit(d) {
+        const fileInput = document.getElementById(d === 1 ? 'imageUpload' : 'imageUpload2');
+        if (fileInput.files.length) {
+            let fd = new FormData();
+            fd.append('file', fileInput.files[0]);
+            fetch('/predict_image', {method: 'POST', body: fd})
+                .then(r => r.json()).then(data => updateDigit(d, data))
+                .catch(() => updateDigit(d, {prediction: 'Error', prediction_time: null}));
+        } else {
+            const dataURL = canvases[d - 1].toDataURL();
+            fetch('/predict_canvas', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({image: dataURL})
+            }).then(r => r.json()).then(data => updateDigit(d, data))
+                .catch(() => updateDigit(d, {prediction: 'Error', prediction_time: null}));
+        }
     }
 
-    function sendImage(imageId, digitIndex) {
-        const input = document.getElementById(imageId);
-        const formData = new FormData();
-        formData.append("file", input.files[0]);
-
-        fetch("/predict_image", {
-            method: "POST",
-            body: formData,
-        })
-            .then((response) => response.json())
-            .then((data) => {
-                if (data.prediction !== undefined) {
-                    if (digitIndex === 1) {
-                        document.getElementById("digit1Prediction").textContent = data.prediction;
-                        document.getElementById("digit1PredictionTime").textContent = `${data.prediction_time.toFixed(2)} seconds`;
-                    } else if (digitIndex === 2) {
-                        document.getElementById("digit2Prediction").textContent = data.prediction;
-                        document.getElementById("digit2PredictionTime").textContent = `${data.prediction_time.toFixed(2)} seconds`;
-                    }
-                } else {
-                    if (digitIndex === 1) {
-                        document.getElementById("digit1Prediction").textContent = "Error";
-                        document.getElementById("digit1PredictionTime").textContent = "N/A";
-                    } else if (digitIndex === 2) {
-                        document.getElementById("digit2Prediction").textContent = "Error";
-                        document.getElementById("digit2PredictionTime").textContent = "N/A";
-                    }
-                }
-            })
-            .catch((error) => {
-                if (digitIndex === 1) {
-                    document.getElementById("digit1Prediction").textContent = "Error in prediction.";
-                    document.getElementById("digit1PredictionTime").textContent = "N/A";
-                } else if (digitIndex === 2) {
-                    document.getElementById("digit2Prediction").textContent = "Error in prediction.";
-                    document.getElementById("digit2PredictionTime").textContent = "N/A";
-                }
-                console.error(error);
-            });
+    function updateDigit(d, data) {
+        document.getElementById(d === 1 ? 'digit1Prediction' : 'digit2Prediction').textContent = data.prediction;
+        let t = data.prediction_time;
+        document.getElementById(d === 1 ? 'digit1PredictionTime' : 'digit2PredictionTime').textContent = t != null ? t.toFixed(2) + 's' : 'N/A';
     }
 
-    function calculate() {
-        const digit1 = parseInt(document.getElementById("digit1Prediction").textContent);
-        const digit2 = parseInt(document.getElementById("digit2Prediction").textContent);
-        const operation = document.getElementById("operationPrediction").textContent.trim();
+    // Predict canvas and upload image Operation
+    function predictAndCalculate() {
+        const fileInput = document.getElementById('imageUploadOpe');
+        const canvas = canvases[2]; // operationCanvas
+        let predictionPromise;
 
-        let result = 0;
-
-        if (!isNaN(digit1) && !isNaN(digit2) && operation !== "N/A") {
-            if (operation === "10") {
-                result = digit1 + digit2;
-            } else if (operation === "11") {
-                result = digit1 - digit2;
-            } else if (operation === "12") {
-                result = digit1 * digit2;
-            } else if (operation === "13") {
-                result = digit2 !== 0 ? digit1 / digit2 : "Error: Division by zero";
-            }
+        if (fileInput.files.length > 0) {
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            predictionPromise = fetch('/predict_image', {method: 'POST', body: formData})
+                .then(r => r.json());
+        } else {
+            const dataURL = canvas.toDataURL();
+            predictionPromise = fetch('/predict_canvas', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({image: dataURL})
+            }).then(r => r.json());
         }
 
-        document.getElementById("calcResult").textContent = result;
+        predictionPromise
+            .then(data => {
+                if (data.prediction === undefined || data.prediction === 'Error') {
+                    document.getElementById('operationPrediction').textContent = 'Error';
+                    document.getElementById('calcResult').textContent = 'Error: Invalid operation';
+                    return;
+                }
+                document.getElementById('operationPrediction').textContent = data.prediction;
+                sendCalculateRequest(data.prediction);
+            })
+            .catch(error => {
+                document.getElementById('operationPrediction').textContent = 'Error';
+                document.getElementById('calcResult').textContent = 'Error: Prediction failed';
+            });
+    }
+
+    function sendCalculateRequest(operation) {
+        const d1 = document.getElementById('digit1Prediction').textContent;
+        const d2 = document.getElementById('digit2Prediction').textContent;
+
+        if (d1 === 'N/A' || d2 === 'N/A' || d1 === 'Error' || d2 === 'Error') {
+            document.getElementById('calcResult').textContent = 'Error: Missing or invalid digits';
+            return;
+        }
+
+        const data = {
+            firstNumber: parseInt(d1),
+            secondNumber: parseInt(d2),
+            operationImage: parseInt(operation)
+        };
+
+        fetch('/calculate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        })
+            .then(r => r.json())
+            .then(res => {
+                document.getElementById('calcResult').textContent = res.result;
+            })
+            .catch(error => {
+                document.getElementById('calcResult').textContent = 'Error: Calculation failed';
+            });
     }
 </script>
 </body>
